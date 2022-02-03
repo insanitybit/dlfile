@@ -1,0 +1,18 @@
+[package]
+name = "dlfile"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+color-eyre = "0.6.0"
+eyre = "0.6.6"
+libc = "0.2.117"
+nix = "0.23.1"
+reqwest = { version = "0.11.9", features = ["rustls-tls", "trust-dns", "gzip"] }
+seccompiler = "0.2.0"
+structopt = "0.3.26"
+tokio = { version = "1.16.1", features = ["full"] }
+tracing = "0.1.29"
+tracing-subscriber = "0.3.7"

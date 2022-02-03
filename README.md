@@ -1,6 +1,6 @@
 # dlfile
 
-
+```
 USAGE:
     dlfile [FLAGS] --from <from> --to <to>
 
@@ -12,3 +12,4 @@ FLAGS:
 OPTIONS:
     -f, --from <from>    The fully qualified URL with an https scheme to download from [env: FROM=]
     -t, --to <to>        The file system path, including a file name, for where to write the file to [env: TO=]
+```

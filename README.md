@@ -4,7 +4,7 @@ dlfile is a very simple, straightforward CLI to download a file, except it...
 
 1. Only downloads over HTTPS
 2. Requires TLS 1.2 or higher
-3. Executes in a seccomp sandbox
+3. Executes in a seccomp sandbox (linux only - no sandboxing provided on other platforms, PRs welcome)
 4. Uses `trust-dns`, supporting DNS over TLS
 
 
@@ -14,7 +14,13 @@ dlfile is a very simple, straightforward CLI to download a file, except it...
 
 
 ### Example
-`dlfile --from="https://sh.rustup.rs" --to="./rustup.sh`
+
+`dlfile --min-tls=v1.3 --from="https://sh.rustup.rs" --to="./rustup.sh`
+          ^                    ^                        ^
+          |                    |                        |
+          |              Download from url              |
+          |                                         Write out to file
+ rustup.rs supports tls 1.3
 
 ### Usage
 

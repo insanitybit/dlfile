@@ -4,6 +4,7 @@ use seccompiler::{
     SeccompFilter, SeccompRule
 };
 
+use reqwest::tls::Version;
 use std::io::prelude::*;
 
 use structopt::StructOpt;
@@ -20,11 +21,23 @@ struct Config {
     /// The file system path, including a file name, for where to write the file to
     #[structopt(short, long, env)]
     to: std::path::PathBuf,
-    #[structopt(short, long, env, default_value = "1GB", parse(try_from_str = bytefmt::parse))]
+    /// Minimum tls version, one of `v1.2` or `v1.3`
+    #[structopt(long, env, default_value = "v1.2", parse(try_from_str = min_tls_version))]
+    min_tls: Version,
+    /// Maximum number of bytes to write to disk before aborting
+    #[structopt(long, env, default_value = "1GB", parse(try_from_str = bytefmt::parse))]
     max_size: u64,
     /// [UNSAFE] Indicates that you want to run without the default sandbox
     #[structopt(long)]
     no_sandbox: bool,
+}
+
+fn min_tls_version(tls_version: &str) -> Result<Version, ErrReport> {
+   match tls_version {
+        "v1.2" => Ok(Version::TLS_1_2),
+        "v1.3" => Ok(Version::TLS_1_3),
+        invalid => eyre::bail!("Minimum TLS version must be `v1.2` or `v1.3`, not {}", invalid),
+   }
 }
 
 static APP_USER_AGENT: &str = concat!(
@@ -124,7 +137,7 @@ async fn main() -> Result<(), ErrReport> {
         .no_brotli()
         .timeout(std::time::Duration::from_secs(15))
         .connect_timeout(std::time::Duration::from_secs(3))
-	.min_tls_version(reqwest::tls::Version::TLS_1_2)
+	.min_tls_version(config.min_tls)
         .use_rustls_tls()
 	.https_only(true)
 	.build()
@@ -132,6 +145,11 @@ async fn main() -> Result<(), ErrReport> {
 
     let mut response = client.get(url).send().await
 	.wrap_err("Client failed to `get` url")?;
+
+    tracing::debug!(
+	message="response", 
+	response=?response
+    );
 
     let mut current_byte_count = 0;
     while let Some(chunk) = response.chunk().await? {

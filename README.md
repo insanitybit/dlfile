@@ -16,12 +16,9 @@ dlfile is a very simple, straightforward CLI to download a file, except it...
 ### Example
 
 ```
-dlfile --min-tls=v1.3 --from="https://sh.rustup.rs" --to="./rustup.sh
-          ^                    ^                        ^
-          |                    |                        |
-          |              Download from url              |
-          |                                         Write out to file
- rustup.rs supports tls 1.3
+dlfile --min-tls=v1.3 \
+       --from="https://sh.rustup.rs" \ 
+       --to="./rustup.sh
 ```
 ### Usage
 

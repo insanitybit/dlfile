@@ -14,10 +14,15 @@ use std::io::BufWriter;
 
 #[derive(Debug, StructOpt)]
 struct Config {
+    /// The fully qualified URL with an https scheme to download from
     #[structopt(short, long, env)]
     from: reqwest::Url,
+    /// The file system path, including a file name, for where to write the file to
     #[structopt(short, long, env)]
     to: std::path::PathBuf,
+    #[structopt(short, long, env, default_value = "1GB", parse(try_from_str = bytefmt::parse))]
+    max_size: u64,
+    /// [UNSAFE] Indicates that you want to run without the default sandbox
     #[structopt(long)]
     no_sandbox: bool,
 }
@@ -86,13 +91,14 @@ seccompiler::apply_filter(&filter).unwrap();
   Ok(())
 }
 
+#[tracing::instrument]
 #[tokio::main]
 async fn main() -> Result<(), ErrReport> {
     color_eyre::install()?;
     tracing_subscriber::fmt::init();
 
     let config = Config::from_args();
-    dbg!(&config);
+    tracing::debug!(config=?config);
     let url = config.from;
 
     if config.to.is_dir() {
@@ -124,9 +130,15 @@ async fn main() -> Result<(), ErrReport> {
 	.build()
         .wrap_err("Invalid configuration for client - this is a bug!")?;
 
-    let mut response = client.get(url).send().await?;
+    let mut response = client.get(url).send().await
+	.wrap_err("Client failed to `get` url")?;
 
+    let mut current_byte_count = 0;
     while let Some(chunk) = response.chunk().await? {
+        current_byte_count += chunk.len() as u64;
+        if current_byte_count >= config.max_size {
+            eyre::bail!("Attempted to write too many bytes. Max: {} , Attempted: {}", config.max_size, current_byte_count);
+        }
 	output_file.write(&chunk).wrap_err("Could not write chunk to disk")?;	
     }
 

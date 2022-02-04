@@ -18,3 +18,4 @@ OPTIONS:
 1. Only downloads over HTTPS
 2. Requires TLS 1.2 or higher
 3. Executes in a seccomp sandbox
+4. Uses `trust-dns`, supporting DNS over TLS

@@ -29,10 +29,10 @@ let filter: BpfProgram = SeccompFilter::new(
 	// We only ever read fd 10
         SeccompCondition::new(0, SeccompCmpArgLen::Dword, SeccompCmpOp::Eq, 10)?,
         // Because seccomp can't validate values behind pointers we're unable to do much at all
-        SeccompCondition::new(1, SeccompCmpArgLen::Qword, SeccompCmpOp::Gt, 0u64).unwrap(),
+        SeccompCondition::new(1, SeccompCmpArgLen::Qword, SeccompCmpOp::Gt, 0u64)?,
         // We always read more than 0 bytes...
-        SeccompCondition::new(2, SeccompCmpArgLen::Dword, SeccompCmpOp::Gt, 0u64).unwrap(),
-    ]).unwrap(),
+        SeccompCondition::new(2, SeccompCmpArgLen::Dword, SeccompCmpOp::Gt, 0u64)?,
+    ])?,
 ]),
 (libc::SYS_close, vec![]),
 (libc::SYS_write, vec![]),
@@ -45,9 +45,9 @@ let filter: BpfProgram = SeccompFilter::new(
     .collect(),
     SeccompAction::KillProcess,
     SeccompAction::Allow,
-    std::env::consts::ARCH.try_into().unwrap(),
+    std::env::consts::ARCH.try_into()?,
 ).unwrap().try_into().unwrap();
-seccompiler::apply_filter(&filter).unwrap();
+seccompiler::apply_filter(&filter)?;
 
   Ok(())
 }
@@ -71,11 +71,11 @@ let filter: BpfProgram = SeccompFilter::new(
 (libc::SYS_openat, vec![
     SeccompRule::new(vec![
 	// Really doesn't do much except specify that the path is relative to cwd
-        SeccompCondition::new(0, SeccompCmpArgLen::Dword, SeccompCmpOp::Eq, libc::AT_FDCWD as u64).unwrap(),
+        SeccompCondition::new(0, SeccompCmpArgLen::Dword, SeccompCmpOp::Eq, libc::AT_FDCWD as u64)?,
         // Because seccomp can't validate values behind pointers we're unable to do much at all
-        SeccompCondition::new(1, SeccompCmpArgLen::Qword, SeccompCmpOp::Gt, 0u64).unwrap(), 
+        SeccompCondition::new(1, SeccompCmpArgLen::Qword, SeccompCmpOp::Gt, 0u64)?, 
         // Read only, close when fd is closed.
-        SeccompCondition::new(2, SeccompCmpArgLen::Dword, SeccompCmpOp::Eq, (libc::O_RDONLY | libc::O_CLOEXEC) as u64).unwrap(),
+        SeccompCondition::new(2, SeccompCmpArgLen::Dword, SeccompCmpOp::Eq, (libc::O_RDONLY | libc::O_CLOEXEC) as u64)?,
     ]).unwrap(),
 ]),
 // Used to stat /etc/resolve.conf
